@@ -19,5 +19,3 @@ Fill in the necessary TODOs in query.py
 <h2>Grading</h2>
 
 We will be grading you on the accuracy of your queries.
-
-## Lab README change assignment: changed
