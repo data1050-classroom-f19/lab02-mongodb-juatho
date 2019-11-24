@@ -26,15 +26,15 @@ def load_airbnb(file):
         d.pop('longitude')
         d.pop('latitude')
         arr.append(d.copy())
-    print("Airbnb document fileds: ", arr[0].keys())
+    print("Airbnb document fields: ", arr[0].keys())
 
     inserted_ids = db.airbnb.insert_many(arr).inserted_ids
+    print(len(inserted_ids), "Airbnb documents inserted")
+
     db.airbnb.create_index(
         [('name', TEXT), ('neighbourhood', TEXT)], default_language='english')
-    db.airbnb.create_index([('location', GEOSPHERE)])
-
-    print(len(inserted_ids), "Airbnb documents inserted")
     print("Text index created for airbnb")
+    db.airbnb.create_index([('location', GEOSPHERE)])
     print("Geosphere index created for airbnb")
 
 
@@ -49,10 +49,12 @@ def load_taxi(file):
         d = row.to_dict()
         d['pickup_datetime'] = datetime.strptime(d['pickup_datetime'], '%Y-%m-%d %H:%M:%S %Z')
         arr.append(d.copy())
+    print("Taxi document fields: ", arr[0].keys())
 
     # TODO: insert `arr` into `db.taxi` and print the number of records inserted.
     # Use load_airbnb as an example. This takes 2 lines of codes.
-
+    inserted_ids = db.taxi.insert_many(arr).inserted_ids
+    print(len(inserted_ids), "Taxi documents inserted")
 
 if __name__ == "__main__":
     db = MongoClient().test

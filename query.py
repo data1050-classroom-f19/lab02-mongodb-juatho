@@ -23,7 +23,18 @@ def query1(minFare, maxFare):
         An array of documents.
     """
     docs = db.taxi.find(
-        # TODO: implement me
+        {
+            'fare_amount': {
+                '$gt': minFare,
+                '$lte': maxFare
+            }
+        },
+        {
+            '_id': 0,
+            'pickup_longitutde': 1,
+            'pickup_latitude': 1,
+            'fare_amount': 1
+        }
     )
 
     result = [doc for doc in docs]
@@ -76,9 +87,17 @@ def query3():
     Returns:
         An array of documents.
     """
-    docs = db.airbnb.aggregate(
-        # TODO: implement me
-    )
+    docs = db.airbnb.aggregate([
+        {
+            '$group': { 
+                'neighborhood_group': "$neighborhood_group",
+                'average_price': {'$avg': "$price"}
+            }
+        },
+        {
+            '$sort': {'average_price': -1}
+        }
+    ])
 
     result = [doc for doc in docs]
     return result
@@ -94,33 +113,69 @@ def query4():
     Returns:
         An array of documents.
     """
-    docs = db.taxi.aggregate(
-        # TODO: implement me
-    )
+    docs = db.taxi.aggregate([
+        {
+            '$group': { 
+                'pickup_hour': {'$hour': "$pickup_datetime"},
+                'average_fare': {'$avg': "$price"},
+                'average_manhattan_distance': {
+                    '$avg': {
+                        '$sqrt': {
+                            '$add': [
+                                {'$pow': [{'$subtract': ["$dropoff_longitude", "$pickup_longitude"]}, 2]},
+                                {'$pow': [{'$subtract': ["$dropoff_latitude", "$pickup_latitude"]}, 2]}
+                            ]
+                        }
+                    }
+                },
+                'total_num_rides': {'$sum': 1},
+            }
+        },
+        {
+            '$sort': {'average_fare': -1}
+        }
+    ])
     result = [doc for doc in docs]
     return result
 
 
 def query5():
-    """ Finds airbnbs within 1000 meters from location (longitude, latitude) using geoNear. 
-        Find average fare for each hour.
-        Find average manhattan distance travelled for each hour.
-        Count total number of rides per pickup hour.
-        Sort by average fare in descending order.
+    """ Finds airbnbs within 1000 meters from location (longitude, latitude) using geoNear.
+    Args:
+        latitude: A float representing latitude coordinate
+        longitude: A float represeting longitude coordinate
 
     Projection:
         dist
-        location
         name
         neighbourhood
         neighbourhood_group
         price
         room_type
-
-
     """
-    docs = db.airbnb.aggregate(
-        # TODO: implement me
-    )
+    docs = db.airbnb.aggregate([
+        {
+            '$geoNear': {
+                'near': {'type': 'Point', 'coordinates': [longitude, latitude]},
+                'distanceField': 'dist.calculated',
+                'maxDistance': 1000,
+                'spherical': False
+            }
+        },
+        {
+            '$project': {
+                '_id': 0,
+                'dist': 1,
+                'name': 1,
+                'neighbourhood': 1,
+                'neighbourhood_group': 1,
+                'price': 1,
+                'room_type': 1
+            }
+        },
+        {
+            '$sort': {'dist': 1}
+        }
+    ])
     result = [doc for doc in docs]
     return result
