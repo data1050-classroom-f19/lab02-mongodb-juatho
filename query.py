@@ -24,19 +24,19 @@ def query1(minFare, maxFare):
     """
     docs = db.taxi.find(
         {
-            'fare_amount': {
-                '$gt': minFare,
-                '$lte': maxFare
-            }
+            '$and': [
+                {'fare_amount': {'$gte': minFare}},
+                {'fare_amount': {'$lte': maxFare}}
+            ]
         },
         {
             '_id': 0,
-            'pickup_longitutde': 1,
+            'pickup_longitude': 1,
             'pickup_latitude': 1,
             'fare_amount': 1
         }
     )
-
+    
     result = [doc for doc in docs]
     return result
 
